@@ -15,7 +15,7 @@ Stack de observabilidade agnóstica para desenvolvimento local. Pode ser usada p
 ## Quick Start
 
 ```bash
-cd devtools/observability
+cd devtools
 docker compose up -d
 ```
 
@@ -72,23 +72,25 @@ sum(rate(http_server_request_duration_milliseconds_count{service_name="ms-integr
 ## Estrutura de arquivos
 
 ```
-observability/
+devtools/
 ├── docker-compose.yml
-├── grafana/
-│   ├── dashboards/           # Coloque seus dashboards .json aqui
-│   └── provisioning/
-│       ├── dashboards/
-│       │   └── dashboards.yaml
-│       └── datasources/
-│           └── datasources.yaml
-├── loki/
-│   └── loki-config.yaml
-├── otel-collector/
-│   └── otel-collector-config.yaml
-├── prometheus/
-│   └── prometheus.yml
-└── promtail/
-    └── promtail-config.yaml
+└── observability/
+    ├── README.md
+    ├── grafana/
+    │   ├── dashboards/           # Coloque seus dashboards .json aqui
+    │   └── provisioning/
+    │       ├── dashboards/
+    │       │   └── dashboards.yaml
+    │       └── datasources/
+    │           └── datasources.yaml
+    ├── loki/
+    │   └── loki-config.yaml
+    ├── otel-collector/
+    │   └── otel-collector-config.yaml
+    ├── prometheus/
+    │   └── prometheus.yml
+    └── promtail/
+        └── promtail-config.yaml
 ```
 
 ## Portas do OTel Collector
@@ -127,6 +129,7 @@ curl http://localhost:16686/api/services
 ## Parando a stack
 
 ```bash
+cd devtools
 docker compose down
 ```
 
