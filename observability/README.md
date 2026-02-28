@@ -9,7 +9,8 @@ Stack de observabilidade agnóstica para desenvolvimento local. Pode ser usada p
 | **Grafana** | 3000 | http://localhost:3000 | Dashboards e visualização |
 | **Prometheus** | 9090 | http://localhost:9090 | Coleta e armazenamento de métricas |
 | **Jaeger** | 16686 | http://localhost:16686 | Tracing distribuído |
-| **Loki** | 3100 | http://localhost:3100 | Agregação de logs |
+| **OpenSearch** | 9200 | http://localhost:9200 | Armazenamento e busca de logs |
+| **OpenSearch Dashboards** | 5601 | http://localhost:5601 | UI para explorar logs |
 | **OTel Collector** | 4317/4318 | - | Coleta de telemetria (gRPC/HTTP) |
 
 ## Quick Start
@@ -26,13 +27,16 @@ docker compose up -d
 - **Usuário:** admin
 - **Senha:** admin
 
-Os datasources (Prometheus, Jaeger, Loki) já estão pré-configurados.
+Os datasources (Prometheus, Jaeger, OpenSearch) já estão pré-configurados.
 
 ### Prometheus
 - **URL:** http://localhost:9090
 
 ### Jaeger UI
 - **URL:** http://localhost:16686
+
+### OpenSearch Dashboards
+- **URL:** http://localhost:5601
 
 ## Configuração da Aplicação
 
@@ -83,14 +87,10 @@ devtools/
     │       │   └── dashboards.yaml
     │       └── datasources/
     │           └── datasources.yaml
-    ├── loki/
-    │   └── loki-config.yaml
     ├── otel-collector/
     │   └── otel-collector-config.yaml
-    ├── prometheus/
-    │   └── prometheus.yml
-    └── promtail/
-        └── promtail-config.yaml
+    └── prometheus/
+        └── prometheus.yml
 ```
 
 ## Portas do OTel Collector
@@ -124,6 +124,20 @@ curl -s http://localhost:9090/api/v1/label/__name__/values | jq '.data[:10]'
 ```bash
 # Listar serviços
 curl http://localhost:16686/api/services
+```
+
+### Verificar logs no OpenSearch
+
+```bash
+# Verificar se o índice de logs existe
+curl http://localhost:9200/_cat/indices?v
+
+# Buscar logs recentes
+curl -X GET "http://localhost:9200/otel-logs/_search?pretty" -H 'Content-Type: application/json' -d'
+{
+  "size": 10,
+  "sort": [{"@timestamp": "desc"}]
+}'
 ```
 
 ## Parando a stack

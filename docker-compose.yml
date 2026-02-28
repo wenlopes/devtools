@@ -17,6 +17,7 @@ services:
       - "55679:55679" # zPages extension
     depends_on:
       - jaeger
+      - opensearch
     restart: unless-stopped
     networks:
       - observability
@@ -75,36 +76,48 @@ services:
     depends_on:
       - prometheus
       - jaeger
-      - loki
     restart: unless-stopped
     networks:
       - observability
 
-  # Loki - Log Aggregation
-  loki:
-    container_name: loki.devtools
-    image: grafana/loki:2.9.4
-    command: -config.file=/etc/loki/loki-config.yaml
+  # OpenSearch - Log Storage and Search
+  opensearch:
+    container_name: opensearch.devtools
+    image: opensearchproject/opensearch:2.12.0
+    environment:
+      - discovery.type=single-node
+      - plugins.security.disabled=true
+      - OPENSEARCH_JAVA_OPTS=-Xms512m -Xmx512m
+      - bootstrap.memory_lock=true
+      - OPENSEARCH_INITIAL_ADMIN_PASSWORD=Admin@123456
+      - DISABLE_INSTALL_DEMO_CONFIG=true
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+      nofile:
+        soft: 65536
+        hard: 65536
     volumes:
-      - ./observability/loki/loki-config.yaml:/etc/loki/loki-config.yaml:ro
-      - loki_data:/tmp/loki
+      - opensearch_data:/usr/share/opensearch/data
     ports:
-      - "3100:3100"
+      - "9200:9200" # REST API
+      - "9600:9600" # Performance Analyzer
     restart: unless-stopped
     networks:
       - observability
 
-  # Promtail - Log Collector (ships logs to Loki)
-  promtail:
-    container_name: promtail.devtools
-    image: grafana/promtail:2.9.4
-    command: -config.file=/etc/promtail/promtail-config.yaml
-    volumes:
-      - ./observability/promtail/promtail-config.yaml:/etc/promtail/promtail-config.yaml:ro
-      - /var/lib/docker/containers:/var/lib/docker/containers:ro
-      - /var/run/docker.sock:/var/run/docker.sock
+  # OpenSearch Dashboards - UI for OpenSearch
+  opensearch-dashboards:
+    container_name: opensearch-dashboards.devtools
+    image: opensearchproject/opensearch-dashboards:2.12.0
+    environment:
+      - OPENSEARCH_HOSTS=["http://opensearch:9200"]
+      - DISABLE_SECURITY_DASHBOARDS_PLUGIN=true
+    ports:
+      - "5601:5601"
     depends_on:
-      - loki
+      - opensearch
     restart: unless-stopped
     networks:
       - observability
@@ -116,4 +129,4 @@ networks:
 volumes:
   prometheus_data:
   grafana_data:
-  loki_data:
+  opensearch_data:

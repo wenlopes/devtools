@@ -30,11 +30,13 @@ exporters:
   debug:
     verbosity: detailed
 
-  loki:
-    endpoint: http://loki:3100/loki/api/v1/push
-    default_labels_enabled:
-      exporter: false
-      job: true
+  opensearch:
+    http:
+      endpoint: http://opensearch:9200
+      tls:
+        insecure: true
+    logs_index: otel-logs
+    namespace: logs
 
 extensions:
   health_check:
@@ -57,7 +59,7 @@ service:
     logs:
       receivers: [otlp]
       processors: [memory_limiter, batch]
-      exporters: [loki, debug]
+      exporters: [opensearch, debug]
 
   telemetry:
     logs:
